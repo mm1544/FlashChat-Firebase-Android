@@ -180,6 +180,8 @@ public class RegisterActivity extends AppCompatActivity {
 
     // TODO: Save the display name to Shared Preferences
 
+    // Will be using Android Shared Preferen
+
 
     // TODO: Create an alert dialog to show in case registration failed
 
