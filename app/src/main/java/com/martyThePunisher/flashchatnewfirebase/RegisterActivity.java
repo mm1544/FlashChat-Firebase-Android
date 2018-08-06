@@ -1,5 +1,7 @@
 package com.martyThePunisher.flashchatnewfirebase;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
@@ -160,6 +162,17 @@ public class RegisterActivity extends AppCompatActivity {
 
                     showErrorDialog("Resgistration attempt failed");
 
+                } else {
+                    saveDisplayName();
+                    // need to add an isnstructions to leave the current screen and head back to
+                    // login activity. To do that we will create Intent to navigate back to login
+                    // activity.
+                    Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+                    // call finish() at the end of the RegisterActivity and start the login activity
+                    // WITH THE INTENT that we just created.
+                    finish();
+                    startActivity(intent);
+
                 }
             }
         });
@@ -180,7 +193,34 @@ public class RegisterActivity extends AppCompatActivity {
 
     // TODO: Save the display name to Shared Preferences
 
-    // Will be using Android Shared Preferen
+    // Will be using Android c. SharedPreferences - is a way of saving simple peaces
+    // of information as a key:value pairs.
+
+    // simmilar to getInstance() method, this method will take care of object creation and provides
+    // an alternative to creating the SharedPreferences using 'new' keyword.
+
+    /*
+    public abstract SharedPreferences getSharedPreferences (String name, int mode)
+Retrieve and hold the contents of the preferences file 'name', returning a SharedPreferences through
+ which you can retrieve and modify its values. Only one instance of the SharedPreferences object is
+ returned to any callers for the same name, meaning they will see each other's edits as soon as they
+  are made. This method is thead-safe
+     */
+
+    private void saveDisplayName(){
+        String displayName = mUsernameView.getText().toString();
+        SharedPreferences prefs = getSharedPreferences(CHAT_PREFS, 0);
+        // to make use of our SharedPreferences object, we first have to inform it that it is going
+        // to be edited. By prefs.edit() - the obje#t gets ready to a##ept some data.
+        // putString() - will provide data in key:value pair.
+        // displayName - is what the user is
+        // typed in
+        // apply() - to commit the data and safe the information to the device
+        prefs.edit().putString(DISPLAY_NAME_KEY, displayName).apply();
+
+    }
+
+
 
 
     // TODO: Create an alert dialog to show in case registration failed
