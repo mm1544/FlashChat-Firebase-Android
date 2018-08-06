@@ -164,7 +164,7 @@ public class RegisterActivity extends AppCompatActivity {
 
                 } else {
                     saveDisplayName();
-                    // need to add an isnstructions to leave the current screen and head back to
+                    // need to add an instructions to leave the current screen and head back to
                     // login activity. To do that we will create Intent to navigate back to login
                     // activity.
                     Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
@@ -225,15 +225,15 @@ Retrieve and hold the contents of the preferences file 'name', returning a Share
 
     // TODO: Create an alert dialog to show in case registration failed
 
-    //we should provide some sort of feedba#k in form of dialog, if the registration fales. Dialog
+    //we should provide some sort of feedba#k in form of dialog, if the registration fails. Dialog
     // is some small window that shows users some information or prompt them to do something.
 
     private  void showErrorDialog(String message){
-        // the way to create the dialog is by using the Builder pattern. In Google documentation:
+        // the way to create the dialog is by using the BUILDER PATTERN. In Google documentation:
         // AlertDialog.Builder
-        // Builder patern is the way of creating an object and configuring it at the same time.
+        // BUILDER PATTERN is the way of creating an object and configuring it at the same time.
 
-        // We will create an anonymous alertDialog Builder:
+        // We will create an ANONYMOUS alertDialog Builder:
         new AlertDialog.Builder(this)
             // now we can use this anonymous builder to configure our dialog
             .setTitle("Oops")
