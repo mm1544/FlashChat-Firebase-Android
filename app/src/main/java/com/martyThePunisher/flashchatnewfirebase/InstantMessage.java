@@ -23,3 +23,4 @@ public class InstantMessage {
         return author;
     }
 }
+
