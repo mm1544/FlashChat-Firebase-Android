@@ -15,6 +15,8 @@ Adaptor will serv-up(??) the data for the individual row to be displayed in the 
 
 import android.app.Activity;
 import android.content.Context;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,7 +24,9 @@ import android.widget.BaseAdapter;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 
 import java.util.ArrayList;
@@ -51,19 +55,73 @@ public class ChatListAdapter extends BaseAdapter{
     // SO every time ve read from #loud database we re#eive data in the form of DataSnapshot.
 
 
+
+    // to dete#t that there is a new #hat message in Firebase's server we will have to use a listener
+    // - ChildEventListener. This listener will get notified if there are any #hanges to the database.
+    // Eg. when someone sends a message, a new data is getting added to database. That qualifies as
+    // a #hange, so our listener will report ba#k.
+    private ChildEventListener mListener = new ChildEventListener() {
+        @Override
+        //will get fired when new #hat message is added to the database
+        public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+            //when on#hildAdded() is trigered we will re#eive a DataSnapshot from Firebase
+            // snapshot is in form of JSON and #ontains our #hatmessage data. This is where we will
+            // use ArrayList
+
+            // we will add a snapshot that we re#eived through the #allba#k, to the #ole#tion of
+            // snapshots in the ArrayList
+            mSnapshotList.add(dataSnapshot);
+
+            // after ea#h addition to the arrayList we need to notify the ListView that it needs to
+            // refresh itself:
+            notifyDataSetChanged();
+
+        }
+
+        @Override
+        public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+        }
+
+        @Override
+        public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+        }
+
+        @Override
+        public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+        }
+
+        @Override
+        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+        }
+    };
+
+
     //constructor (that will create and configure a chatListAdapter object)
     public ChatListAdapter(Activity activity, DatabaseReference ref, String name){
                             // ref - referen#e to the Firebase database
                             // name - curent user's display name
         mActivity = activity;
         mDisplayName = name;
-        mDatabaseReference = ref.child("messages"); // setting equal to messages location coz that
+        mDatabaseReference = ref.child("message"); // setting equal to messages location coz that
         // is where an individual chat message will come from
+
+        //we need to ata#h ChildEventListener mListener to database referen#e (????)
+        // Sin#e atta#ing the Listeners is realy a settup pro#es for the addaptor, we gonna take
+        // #are of this inside of the #onstru#tor.
+        mDatabaseReference.addChildEventListener(mListener);
+
 
         // creating mSnapshotList by calling constructor of the ArrayList
         mSnapshotList = new ArrayList<>();
 
     }
+
+
+
 
 
 
@@ -73,7 +131,7 @@ public class ChatListAdapter extends BaseAdapter{
     We will create a helper class in java code, that acts as little package for individual row.
      */
 
-    // ViewHolder will hold all the Views in a single chat row
+    // ViewHolder will hold all the Views of a single chat row
     static class ViewHolder{
         // adding two TextView fields for this ViewHolder
         TextView authorName;
@@ -92,7 +150,7 @@ public class ChatListAdapter extends BaseAdapter{
 
 
     /*
-    Q: HOW the ListView and the adapter interact with eachother?
+    Q: HOW the ListView and the adapter interact with each other?
 
     A: Android #omponents #an send messages to ea#h other on the ba#k of events
      without dire#t user input.
@@ -133,16 +191,32 @@ public class ChatListAdapter extends BaseAdapter{
 
 
     @Override
+    /*
+    The first thing the ListView will 'ask' over chatListAdapter is how many items there are in the
+    list, by #alling getCount() method
+     */
     public int getCount() {
-        return 0;
+        return mSnapshotList.size();
     }
 
     @Override
     public InstantMessage getItem(int position) {
-        return null;
+        DataSnapshot snapshot = mSnapshotList.get(position); // position is just an index in ArrayList
+        // we need to extra#t InstantMessage obje#t out of snapshot:
+        return snapshot.getValue(InstantMessage.class);
+        // getValue(InstantMessage.#lass) - #onversts the JSON from the snapshot into InstantMessage obj.
+
+        //!!!
+        // getItem() returns InstantMessage obj. when it got #alled inside getView()
+
     }
 
     @Override
+    /*
+    we need to make sure that our adapter #an provide #ore#t message data to the ListView
+     SO we need to get the relevant InstantMessage out of the list of snapshots
+     This we will done in getItem()
+     */
     public long getItemId(int position) {
         return 0;
     }
@@ -153,6 +227,7 @@ public class ChatListAdapter extends BaseAdapter{
     // convertView here represents a list item
     public View getView(int position, View convertView, ViewGroup parent) {
 
+        //###IF THERE IS NO REUSABLE 'VIEWS' WE ARE #REATING ONE:
         // first getView() will #he#k if there is existing row that #an be reused
         // if convertView is equal to null, we will #reate a new row from s#rat#h
         if(convertView == null) {
@@ -185,13 +260,18 @@ public class ChatListAdapter extends BaseAdapter{
 
         }
 
+
+        //###IF WE HAVE REUSABLE 'VIEW' VE ARE SKIPPING LAYOUT #REATION PART AND
+        //STARTING TO POPULATE THE DATA FOR THE ROW
+
         //need to make sure that we are showing the #orre#t message text and author in our list item.
         // Lets get hold of the chat message at the possition in the list. Will do it by #alling
         // getItem().
         // NOTE: getView is #alled by the listView for all the items in the list, and the possition
         // just reffers to the index. Position will be equall 0 for the first item in the list.
 
-        //SO here we are saying: -get the instantMessage at the #urrent position in the list
+        //SO here we are saying: -get the instantMessage (THE MESSAGE THAT SHOULD BE DISPLAYED AT
+        // THIS POINT IN THE #HAT) at the #urrent position in the list
         final InstantMessage message = getItem(position);
 
 
@@ -199,7 +279,7 @@ public class ChatListAdapter extends BaseAdapter{
         // stored it inside of convertView with the setTag() method. Now we will use getTag() method
         // to retrieve the ViewHolder, that was temporarily saved in the convertView. setTag() and
         // getTag() methods allow us to reseicle our ViewHolders for each row in the list.
-        final ViewHolder holder = (ViewHolder) convertView.getTag();
+        final ViewHolder holder = (ViewHolder) convertView.getTag(); // WE RETRIEVE EXISTING VIEWHOLDER FROM THE #ONVERTVIEW
                     // but the ViewHolder that we have just fet#ht from the convertView is still
                     // gonna have an old data in it (?????!!!) from the previous time when it was
                     // used. We will #hange it by repla#ing staled data
@@ -220,6 +300,9 @@ public class ChatListAdapter extends BaseAdapter{
 
         // ViewHolder Pattern
         /////////////////////////
+        //
+        // https://developer.android.com/training/improving-layouts/smooth-scrolling
+        //
         // Chat conversation can have hundreds of rows, but we will be able to display jus t small
         // subset on s#reen at the same time. Phone will only hold those #hat rows in memory, whi#h
         // are going to be displayed to the s#reen (and few extra rows at either end).
@@ -244,5 +327,15 @@ public class ChatListAdapter extends BaseAdapter{
         return convertView;
     }
 
+    // FINAL THING IN ChatListAdapter class is to #reate a method that would stop #he#king for new
+    // events on the database.
+    //Q: Why we need it?
+    //A: To free-up the resour#es when we don't need them any more
+
+    public  void cleanup(){
+        // removes Firebase event listener
+        mDatabaseReference.removeEventListener(mListener);
+
+    }
 
 }

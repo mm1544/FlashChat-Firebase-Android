@@ -20,6 +20,7 @@ public class InstantMessage {
     }
 
     public String getAuthor() {
+        if(author == null) author = "Name not saved";
         return author;
     }
 }

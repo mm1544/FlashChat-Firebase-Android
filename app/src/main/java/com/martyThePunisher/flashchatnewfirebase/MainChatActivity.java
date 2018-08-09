@@ -23,6 +23,7 @@ public class MainChatActivity extends AppCompatActivity {
     private EditText mInputText;
     private ImageButton mSendButton;
     private DatabaseReference mDatabaseReference;
+    private ChatListAdapter mAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,14 +131,35 @@ public class MainChatActivity extends AppCompatActivity {
     }
 
     // TODO: Override the onStart() lifecycle method. Setup the adapter here.
+    @Override
+    public void onStart(){
+        //onStart() gets #alled after onCreate()
+        super.onStart();
+
+        //creating new adapter
+        mAdapter = new ChatListAdapter(this, mDatabaseReference, mDisplayName);
+
+        // 'hooking-up' adapter to our ListView
+        mChatListView.setAdapter(mAdapter);
+        //by supplying ChatListAdapter obj. to stAdapter method, the ListView knows which adapter it
+        // should 'talk' to
+
+    }
+
+
 
 
     @Override
+    // gets #alled when the app is no longer visible to the user
     public void onStop() {
         super.onStop();
 
         // TODO: Remove the Firebase event listener on the adapter.
+        // need to free-up the resour#es in the Android life#y#le point, when the FlashChat app is
+        // no longer needed.
 
+        // we should tell the adapter to stop #he#king for the updates on the Firebase database:
+        mAdapter.cleanup();
     }
 
 }
