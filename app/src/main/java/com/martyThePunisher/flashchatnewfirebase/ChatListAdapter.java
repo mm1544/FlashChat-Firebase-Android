@@ -15,8 +15,10 @@ Adaptor will serv-up(??) the data for the individual row to be displayed in the 
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -56,6 +58,8 @@ public class ChatListAdapter extends BaseAdapter{
 
 
 
+    //### THIS LISTENER WILL BE NOTIFYING ChatListAdaptor ####
+    //### WILL ATTACH LISTENER TO DATABASE REFERENCE mDatabaseReference ###
     // to dete#t that there is a new #hat message in Firebase's server we will have to use a listener
     // - ChildEventListener. This listener will get notified if there are any #hanges to the database.
     // Eg. when someone sends a message, a new data is getting added to database. That qualifies as
@@ -63,18 +67,23 @@ public class ChatListAdapter extends BaseAdapter{
     private ChildEventListener mListener = new ChildEventListener() {
         @Override
         //will get fired when new #hat message is added to the database
-        public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
             //when on#hildAdded() is trigered we will re#eive a DataSnapshot from Firebase
             // snapshot is in form of JSON and #ontains our #hatmessage data. This is where we will
             // use ArrayList
 
             // we will add a snapshot that we re#eived through the #allba#k, to the #ole#tion of
             // snapshots in the ArrayList
-            mSnapshotList.add(dataSnapshot);
+            mSnapshotList.add(dataSnapshot); // add() method appends the new item to the arrayList
+            // SO everytime the new #hat message is sent, the onChildAdded() method is trigered, and
+            // more and nore dataSnapshot obje#ts are appended to the mSnapshotList
+
 
             // after ea#h addition to the arrayList we need to notify the ListView that it needs to
             // refresh itself:
             notifyDataSetChanged();
+
+            // we will attach
 
         }
 
@@ -106,7 +115,7 @@ public class ChatListAdapter extends BaseAdapter{
                             // name - curent user's display name
         mActivity = activity;
         mDisplayName = name;
-        mDatabaseReference = ref.child("message"); // setting equal to messages location coz that
+        mDatabaseReference = ref.child("message"); // setting equal to 'messages' location coz that
         // is where an individual chat message will come from
 
         //we need to ata#h ChildEventListener mListener to database referen#e (????)
@@ -200,8 +209,12 @@ public class ChatListAdapter extends BaseAdapter{
     }
 
     @Override
+    // PURPOSE: Have to get a relevant InstantMessage out of the list of snapshots
     public InstantMessage getItem(int position) {
+
+        // gets a particular snapshot out of arrayList
         DataSnapshot snapshot = mSnapshotList.get(position); // position is just an index in ArrayList
+
         // we need to extra#t InstantMessage obje#t out of snapshot:
         return snapshot.getValue(InstantMessage.class);
         // getValue(InstantMessage.#lass) - #onversts the JSON from the snapshot into InstantMessage obj.
@@ -283,6 +296,14 @@ public class ChatListAdapter extends BaseAdapter{
                     // but the ViewHolder that we have just fet#ht from the convertView is still
                     // gonna have an old data in it (?????!!!) from the previous time when it was
                     // used. We will #hange it by repla#ing staled data
+
+        // determins if the author of the #hat message mat#hes the displayname
+        boolean isMe = message.getAuthor().equals(mDisplayName);
+
+        // pass the value of isMe together with the ViewHolder to setChatRowAppeatance().
+        setCatRowAppearance(isMe, holder);
+
+
         // Lets retrieve the author for the #urrent item in the list from the instantMessage. Then
         // set the text of the author name TextView in the ViewHolder with the new information. AND
         // will do the same with the #hat message text.
@@ -327,6 +348,42 @@ public class ChatListAdapter extends BaseAdapter{
         return convertView;
     }
 
+    // will do the stiling of the #hat messages
+    private void setCatRowAppearance(boolean isItMe, ViewHolder holder){
+        //isItMe shows if the message is from the user or from the #hat partner
+        // setCatRowAppearance() will take a ViewHolder holder, that we need to style, as an input
+
+        if(isItMe){
+            //if message belongs to the user, it will #hange the layout of the entire row to align
+            // to the right
+            // achieving this by setting gravity atribute of layout parameters:
+            holder.params.gravity = Gravity.END;
+
+            //setting the text #olor of the author name
+            holder.authorName.setTextColor(Color.GREEN);
+
+            //#hange ba#kground image resour#e of the viewholder depending of whos #hat message row
+            // we are displaying
+            holder.body.setBackgroundResource(R.drawable.bubble2);
+
+        } else {
+            // it the #hat message belongs to someone else:
+
+            holder.params.gravity = Gravity.START;
+            holder.authorName.setTextColor(Color.BLUE);
+
+            holder.body.setBackgroundResource(R.drawable.bubble1);
+        }
+
+        // #alling setLayoutParams on both  - the author name and message body
+        holder.authorName.setLayoutParams(holder.params);
+        holder.body.setLayoutParams(holder.params);
+
+    }
+
+
+
+
     // FINAL THING IN ChatListAdapter class is to #reate a method that would stop #he#king for new
     // events on the database.
     //Q: Why we need it?
@@ -334,7 +391,8 @@ public class ChatListAdapter extends BaseAdapter{
 
     public  void cleanup(){
         // removes Firebase event listener
-        mDatabaseReference.removeEventListener(mListener);
+        mDatabaseReference.removeEventListener(mListener); // stops the adapter from checking for
+        // events from the Firebase database
 
     }
 

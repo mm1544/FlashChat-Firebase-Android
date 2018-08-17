@@ -23,7 +23,7 @@ public class MainChatActivity extends AppCompatActivity {
     private EditText mInputText;
     private ImageButton mSendButton;
     private DatabaseReference mDatabaseReference;
-    private ChatListAdapter mAdapter;
+    private ChatListAdapter mAdapter; // member var that holds-on to the adapter
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -136,12 +136,13 @@ public class MainChatActivity extends AppCompatActivity {
         //onStart() gets #alled after onCreate()
         super.onStart();
 
-        //creating new adapter
+        //creating new adapter and supplying inputs to the #onstru#tor
+        // providing a#tivity with keyword 'this'
         mAdapter = new ChatListAdapter(this, mDatabaseReference, mDisplayName);
 
         // 'hooking-up' adapter to our ListView
         mChatListView.setAdapter(mAdapter);
-        //by supplying ChatListAdapter obj. to stAdapter method, the ListView knows which adapter it
+        //by supplying ChatListAdapter obj. to setAdapter method, the ListView knows which adapter it
         // should 'talk' to
 
     }
